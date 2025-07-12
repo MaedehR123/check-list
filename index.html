@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="google-site-verification" content="7ZWvI311G7bJY8bUPvdleqQ29MY7Gg0HU1pqoDNYqVQ" />
+    <meta name="robots" content="index, follow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="اپلیکیشن چک لیست سفر - برنامه‌ای جامع برای مدیریت وسایل ضروری سفرهای داخلی و خارجی بدون نیاز به ثبت‌نام، کار آنلاین و آفلاین">
+    <meta name="keywords" content="چک لیست سفر, برنامه سفر, وسایل ضروری سفر, چک لیست مسافرت, اپلیکیشن سفر">
+    <meta name="author" content="Ida Rezaei">
+
+    <title>چک لیست هوشمند سفر | برنامه مدیریت وسایل مسافرت</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5',
+                        secondary: '#10B981',
+                        accent: '#F59E0B',
+                        dark: '#1F2937',
+                        light: '#F3F4F6',
+                    },
+                    fontFamily: {
+                        sans: ['Vazirmatn', 'Tahoma', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;200;300;400;500;600;700;800;900&display=swap');
+        
+        /* ریسپانسیو برای موبایل - صفحه‌های کوچکتر از 640px */
+@media (max-width: 640px) {
+    body {
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    #checklist-items {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .checklist-item {
+        flex-direction: column !important; /* چیدمان عمودی */
+        align-items: flex-start !important;
+        padding: 12px !important;
+        cursor: pointer;
+        border-radius: 6px;
+    }
+
+    .checklist-item .flex.items-center {
+        flex-direction: row !important;
+        width: 100%;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .checkbox {
+        width: 36px !important;
+        height: 36px !important;
+        margin-right: 10px !important;
+        min-width: 36px !important;
+    }
+
+    .item-name {
+        font-size: 16px !important;
+        white-space: normal !important; /* کلمه‌ها می‌شکنند */
+        margin-bottom: 6px;
+    }
+
+    .checklist-item .flex.items-center .delete-item {
+        padding: 6px !important;
+        font-size: 18px !important;
+    }
+
+    /* کارت دسته‌ها تمام عرض */
+    .category-card {
+        width: 100% !important;
+        margin-bottom: 12px;
+        padding: 12px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    /* دکمه‌ها بزرگ‌تر و راحت‌تر */
+    button {
+        padding: 10px 14px !important;
+        font-size: 16px !important;
+    }
+
+    /* مودال افزودن آیتم */
+    #add-item-modal {
+        padding: 20px !important;
+        width: 95% !important;
+        max-width: 400px !important;
+        margin: 20px auto !important;
+        border-radius: 8px;
+    }
+
+    /* جعبه جستجو */
+    #search-items {
+        width: 100% !important;
+        padding: 10px !important;
+        font-size: 16px !important;
+        margin-bottom: 12px !important;
+    }
+
+    /* نوار پیشرفت */
+    #progress-bar {
+        height: 10px !important;
+        border-radius: 6px;
+    }
+}
+
+
+
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            direction: rtl;
+        }
+        
+        .checklist-item.checked {
+            opacity: 0.7;
+        }
+        
+        .checklist-item.checked .item-name {
+            text-decoration: line-through;
+        }
+        
+        .category-icon {
+            transition: all 0.3s ease;
+        }
+        
+        .category-card:hover .category-icon {
+            transform: scale(1.1);
+        }
+        
+        /* Animation for checked items */
+        @keyframes fadeCheck {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .checkmark {
+            animation: fadeCheck 0.3s ease-out;
+        }
+        
+        /* Pulse animation for important items */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        
+        .important-item {
+            animation: pulse 2s infinite;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* Offline indicator */
+        .offline-indicator {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            background-color: #EF4444;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .offline .offline-indicator {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <!-- Offline Indicator -->
+    <div class="offline-indicator">
+        <i class="fas fa-wifi-slash mr-2"></i>
+        حالت آفلاین - تغییرات ذخیره می‌شوند
+    </div>
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-primary to-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <i class="fas fa-suitcase-rolling text-3xl mr-3"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold">چک لیست هوشمند سفر</h1>
+                        <p class="text-sm opacity-80">برنامه مدیریت وسایل ضروری مسافرت</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4 space-x-reverse">
+                    <button id="save-btn" class="bg-white text-primary px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition flex items-center">
+                        <i class="fas fa-save ml-2"></i>
+                        ذخیره لیست
+                    </button>
+                    <button id="new-list-btn" class="bg-accent text-white px-4 py-2 rounded-lg font-medium hover:bg-yellow-500 transition flex items-center">
+                        <i class="fas fa-plus ml-2"></i>
+                        لیست جدید
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Introduction Section -->
+        <section class="bg-white rounded-xl shadow-md p-6 mb-8">
+            <h2 class="text-xl font-bold text-dark mb-4 flex items-center">
+                <i class="fas fa-info-circle text-primary ml-2"></i>
+                راهنمای استفاده از برنامه
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        به اپلیکیشن چک لیست سفر خوش آمدید! این برنامه به شما کمک می‌کند وسایل ضروری سفرهای داخلی و خارجی خود را مدیریت کنید. بدون نیاز به ثبت‌نام و با قابلیت کار در حالت آفلاین.
+                    </p>
+                    <ul class="list-disc pr-5 space-y-2 text-gray-700">
+                        <li>دسته‌بندی‌های پیش‌فرض را بررسی کنید</li>
+                        <li>وسایل مورد نیاز خود را انتخاب کنید</li>
+                        <li>لیست شخصی خود را ایجاد نمایید</li>
+                        <li>پس از برداشتن هر وسیله، آن را تیک بزنید</li>
+                        <li>لیست خود را ذخیره کنید تا بعداً قابل دسترسی باشد</li>
+                    </ul>
+                </div>
+                <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                    <h3 class="font-bold text-blue-800 mb-3 flex items-center">
+                        <i class="fas fa-lightbulb text-yellow-500 ml-2"></i>
+                        نکات مهم
+                    </h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold ml-2">1</span>
+                            <span>برنامه به صورت خودکار تغییرات را ذخیره می‌کند</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold ml-2">2</span>
+                            <span>وسایل مهم با رنگ قرمز مشخص شده‌اند</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold ml-2">3</span>
+                            <span>می‌توانید وسایل جدید به لیست اضافه کنید</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Categories Section -->
+        <section class="mb-8">
+            <h2 class="text-xl font-bold text-dark mb-6 flex items-center">
+                <i class="fas fa-tags text-primary ml-2"></i>
+                دسته‌بندی وسایل
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <!-- Category Cards -->
+                <div class="category-card bg-white rounded-xl shadow-md p-4 cursor-pointer transition hover:shadow-lg border-l-4 border-primary" data-category="documents">
+                    <div class="flex items-center mb-3">
+                        <div class="category-icon bg-blue-100 text-primary w-12 h-12 rounded-full flex items-center justify-center text-xl ml-3">
+                            <i class="fas fa-passport"></i>
+                        </div>
+                        <h3 class="font-bold">اسناد و مدارک</h3>
+                    </div>
+                    <p class="text-sm text-gray-600">پاسپورت، بلیط، بیمه مسافرتی و سایر مدارک ضروری</p>
+                </div>
+                
+                <div class="category-card bg-white rounded-xl shadow-md p-4 cursor-pointer transition hover:shadow-lg border-l-4 border-green-500" data-category="electronics">
+                    <div class="flex items-center mb-3">
+                        <div class="category-icon bg-green-100 text-green-600 w-12 h-12 rounded-full flex items-center justify-center text-xl ml-3">
+                            <i class="fas fa-laptop"></i>
+                        </div>
+                        <h3 class="font-bold">الکترونیک</h3>
+                    </div>
+                    <p class="text-sm text-gray-600">موبایل، لپ‌تاپ، شارژر و وسایل الکترونیکی</p>
+                </div>
+                
+                <div class="category-card bg-white rounded-xl shadow-md p-4 cursor-pointer transition hover:shadow-lg border-l-4 border-yellow-500" data-category="clothing">
+                    <div class="flex items-center mb-3">
+                        <div class="category-icon bg-yellow-100 text-yellow-600 w-12 h-12 rounded-full flex items-center justify-center text-xl ml-3">
+                            <i class="fas fa-tshirt"></i>
+                        </div>
+                        <h3 class="font-bold">پوشاک</h3>
+                    </div>
+                    <p class="text-sm text-gray-600">لباس‌های مناسب فصل و مقصد سفر</p>
+                </div>
+                
+                <div class="category-card bg-white rounded-xl shadow-md p-4 cursor-pointer transition hover:shadow-lg border-l-4 border-red-500" data-category="hygiene">
+                    <div class="flex items-center mb-3">
+                        <div class="category-icon bg-red-100 text-red-600 w-12 h-12 rounded-full flex items-center justify-center text-xl ml-3">
+                            <i class="fas fa-soap"></i>
+                        </div>
+                        <h3 class="font-bold">بهداشت شخصی</h3>
+                    </div>
+                    <p class="text-sm text-gray-600">وسایل بهداشتی و آرایشی ضروری</p>
+                </div>
+                
+                <div class="category-card bg-white rounded-xl shadow-md p-4 cursor-pointer transition hover:shadow-lg border-l-4 border-purple-500" data-category="medicine">
+                    <div class="flex items-center mb-3">
+                        <div class="category-icon bg-purple-100 text-purple-600 w-12 h-12 rounded-full flex items-center justify-center text-xl ml-3">
+                            <i class="fas fa-briefcase-medical"></i>
+                        </div>
+                        <h3 class="font-bold">دارو و سلامت</h3>
+                    </div>
+                    <p class="text-sm text-gray-600">داروهای شخصی و جعبه کمک‌های اولیه</p>
+                </div>
+                
+                <div class="category-card bg-white rounded-xl shadow-md p-4 cursor-pointer transition hover:shadow-lg border-l-4 border-pink-500" data-category="accessories">
+                    <div class="flex items-center mb-3">
+                        <div class="category-icon bg-pink-100 text-pink-600 w-12 h-12 rounded-full flex items-center justify-center text-xl ml-3">
+                            <i class="fas fa-suitcase"></i>
+                        </div>
+                        <h3 class="font-bold">وسایل همراه</h3>
+                    </div>
+                    <p class="text-sm text-gray-600">چمدان، کیف پول، عینک و سایر ملزومات</p>
+                </div>
+                
+                <div class="category-card bg-white rounded-xl shadow-md p-4 cursor-pointer transition hover:shadow-lg border-l-4 border-indigo-500" data-category="foreign-travel">
+                    <div class="flex items-center mb-3">
+                        <div class="category-icon bg-indigo-100 text-indigo-600 w-12 h-12 rounded-full flex items-center justify-center text-xl ml-3">
+                            <i class="fas fa-globe-americas"></i>
+                        </div>
+                        <h3 class="font-bold">مخصوص سفر خارجی</h3>
+                    </div>
+                    <p class="text-sm text-gray-600">وسایل ضروری برای سفر به کشورهای خارجی</p>
+                </div>
+                
+                <div class="category-card bg-white rounded-xl shadow-md p-4 cursor-pointer transition hover:shadow-lg border-l-4 border-teal-500" data-category="domestic-travel">
+                    <div class="flex items-center mb-3">
+                        <div class="category-icon bg-teal-100 text-teal-600 w-12 h-12 rounded-full flex items-center justify-center text-xl ml-3">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <h3 class="font-bold">مخصوص سفر داخلی</h3>
+                    </div>
+                    <p class="text-sm text-gray-600">وسایل ضروری برای سفر در داخل کشور</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Checklist Section -->
+        <section>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                <h2 class="text-xl font-bold text-dark flex items-center">
+                    <i class="fas fa-clipboard-list text-primary ml-2"></i>
+                    لیست وسایل من
+                </h2>
+                <div class="flex items-center mt-4 md:mt-0">
+                    <div class="relative mr-4">
+                        <input type="text" id="search-items" placeholder="جستجو در لیست..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                    <button id="add-item-btn" class="bg-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition flex items-center">
+                        <i class="fas fa-plus ml-2"></i>
+                        افزودن وسیله
+                    </button>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <!-- Progress Bar -->
+                <div class="bg-gray-100 h-2">
+                    <div id="progress-bar" class="bg-green-500 h-2 transition-all duration-500" style="width: 0%"></div>
+                </div>
+                
+                <!-- Checklist Items -->
+                <div id="checklist-items" class="divide-y divide-gray-200 max-h-[500px] overflow-y-auto">
+                    <!-- Items will be added here dynamically -->
+                </div>
+                
+                <!-- Empty State -->
+                <div id="empty-state" class="p-8 text-center">
+                    <i class="fas fa-clipboard-list text-4xl text-gray-300 mb-4"></i>
+                    <h3 class="text-lg font-medium text-gray-500">لیست وسایل شما خالی است</h3>
+                    <p class="text-gray-400 mt-2">برای شروع، یک دسته‌بندی را انتخاب کنید یا وسیله جدید اضافه نمایید</p>
+                </div>
+            </div>
+            
+            <!-- Add Item Modal -->
+            <div id="add-item-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold">افزودن وسیله جدید</h3>
+                            <button id="close-modal" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="item-name" class="block text-sm font-medium text-gray-700 mb-1">نام وسیله</label>
+                                <input type="text" id="item-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            </div>
+                            <div>
+                                <label for="item-category" class="block text-sm font-medium text-gray-700 mb-1">دسته‌بندی</label>
+                                <select id="item-category" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                    <option value="documents">اسناد و مدارک</option>
+                                    <option value="electronics">الکترونیک</option>
+                                    <option value="clothing">پوشاک</option>
+                                    <option value="hygiene">بهداشت شخصی</option>
+                                    <option value="medicine">دارو و سلامت</option>
+                                    <option value="accessories">وسایل همراه</option>
+                                    <option value="foreign-travel">مخصوص سفر خارجی</option>
+                                    <option value="domestic-travel">مخصوص سفر داخلی</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="item-important" class="h-4 w-4 text-red-500 focus:ring-red-500 border-gray-300 rounded ml-2">
+                                <label for="item-important" class="text-sm font-medium text-gray-700">وسیله ضروری</label>
+                            </div>
+                        </div>
+                        <div class="mt-6 flex justify-end space-x-4 space-x-reverse">
+                            <button id="cancel-add-item" class="px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50">انصراف</button>
+                            <button id="confirm-add-item" class="px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700">افزودن</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-8 mt-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-lg font-bold mb-4 flex items-center">
+                        <i class="fas fa-suitcase-rolling ml-2"></i>
+                        چک لیست هوشمند سفر
+                    </h3>
+                    <p class="text-gray-300">
+                        برنامه‌ای جامع برای مدیریت وسایل ضروری سفرهای داخلی و خارجی. بدون نیاز به ثبت‌نام و با قابلیت کار در حالت آفلاین.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">دسترسی سریع</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-300 hover:text-white transition">راهنمای استفاده</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition">تماس با ما</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition">سوالات متداول</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">طراحی و توسعه</h3>
+                    <p class="text-gray-300">
+                        این برنامه توسط <span class="font-medium text-white">ایدا رضائی</span> طراحی و توسعه داده شده است.
+                    </p>
+                   <div class="flex space-x-4 space-x-reverse mt-4">
+    <a href="https://www.instagram.com/siteup_web/profilecard" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-white transition">
+        <i class="fab fa-instagram text-xl"></i>
+    </a>
+    <a href="https://t.me/siteup_web" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-white transition">
+        <i class="fab fa-telegram text-xl"></i>
+    </a>
+    <a href="https://www.linkedin.com/in/maedeh-rezaei-079570329?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:text-white transition">
+        <i class="fab fa-linkedin text-xl"></i>
+    </a>
+</div>
+
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-400">
+                <p>© 2023 چک لیست هوشمند سفر. تمام حقوق محفوظ است.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if browser supports service workers
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js').then(registration => {
+                        console.log('ServiceWorker registration successful');
+                    }).catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+                });
+            }
+
+            // Check online/offline status
+            function updateOnlineStatus() {
+                if (navigator.onLine) {
+                    document.body.classList.remove('offline');
+                    console.log('Online');
+                } else {
+                    document.body.classList.add('offline');
+                    console.log('Offline');
+                }
+            }
+
+            window.addEventListener('online', updateOnlineStatus);
+            window.addEventListener('offline', updateOnlineStatus);
+            updateOnlineStatus();
+
+            // Default checklist items by category
+            const defaultItems = {
+                'documents': [
+                    { name: 'پاسپورت', important: true },
+                    { name: 'بلیط هواپیما/قطار', important: true },
+                    { name: 'کارت شناسایی', important: true },
+                    { name: 'گواهینامه رانندگی بین‌المللی', important: false },
+                    { name: 'بیمه مسافرتی', important: false },
+                    { name: 'رزرو هتل', important: false },
+                    { name: 'کارت بانکی', important: true },
+                    { name: 'پول نقد', important: true },
+                ],
+                'electronics': [
+                    { name: 'موبایل', important: true },
+                    { name: 'شارژر موبایل', important: true },
+                    { name: 'پاوربانک', important: false },
+                    { name: 'لپ‌تاپ', important: false },
+                    { name: 'شارژر لپ‌تاپ', important: false },
+                    { name: 'هدفون', important: false },
+                    { name: 'تبلت', important: false },
+                    { name: 'آداپتور بین‌المللی', important: false },
+                ],
+                'clothing': [
+                    { name: 'لباس زیر', important: true },
+                    { name: 'جوراب', important: true },
+                    { name: 'پیراهن/بلوز', important: true },
+                    { name: 'شلوار/دامن', important: true },
+                    { name: 'کفش راحت', important: true },
+                    { name: 'کفش رسمی', important: false },
+                    { name: 'لباس خواب', important: false },
+                    { name: 'لباس شنا', important: false },
+                    { name: 'کلاه', important: false },
+                ],
+                'hygiene': [
+                    { name: 'مسواک و خمیردندان', important: true },
+                    { name: 'شانه/برس', important: false },
+                    { name: 'ناخنگیر', important: false },
+                    { name: 'تیغ', important: false },
+                    { name: 'شامپو', important: false },
+                    { name: 'صابون', important: false },
+                    { name: 'دئودورانت', important: false },
+                    { name: 'دستمال کاغذی', important: false },
+                    { name: 'نوار بهداشتی', important: false },
+                ],
+                'medicine': [
+                    { name: 'داروهای شخصی', important: true },
+                    { name: 'مسکن', important: false },
+                    { name: 'قرص معده', important: false },
+                    { name: 'چسب زخم', important: false },
+                    { name: 'پماد سوختگی', important: false },
+                    { name: 'قرص ضدحساسیت', important: false },
+                    { name: 'قطره چشمی', important: false },
+                    { name: 'ژل ضدعفونی', important: false },
+                ],
+                'accessories': [
+                    { name: 'چمدان', important: true },
+                    { name: 'کیف پول', important: true },
+                    { name: 'کیف دستی', important: false },
+                    { name: 'عینک آفتابی', important: false },
+                    { name: 'عینک طبی', important: false },
+                    { name: 'کتاب/مجله', important: false },
+                    { name: 'دفترچه یادداشت', important: false },
+                    { name: 'خودکار', important: false },
+                ],
+                'foreign-travel': [
+                    { name: 'ویزا', important: true },
+                    { name: 'راهنمای سفر', important: false },
+                    { name: 'دیکشنری', important: false },
+                    { name: 'کارت SIM بین‌المللی', important: false },
+                    { name: 'کپی مدارک مهم', important: false },
+                    { name: 'آدرس سفارت', important: false },
+                ],
+                'domestic-travel': [
+                    { name: 'کارت ملی', important: true },
+                    { name: 'کارت تخفیف', important: false },
+                    { name: 'خوراکی سبک', important: false },
+                    { name: 'بطری آب', important: false },
+                ]
+            };
+
+            // Category icons
+            const categoryIcons = {
+                'documents': 'fas fa-passport',
+                'electronics': 'fas fa-laptop',
+                'clothing': 'fas fa-tshirt',
+                'hygiene': 'fas fa-soap',
+                'medicine': 'fas fa-briefcase-medical',
+                'accessories': 'fas fa-suitcase',
+                'foreign-travel': 'fas fa-globe-americas',
+                'domestic-travel': 'fas fa-home'
+            };
+
+            // Category names
+            const categoryNames = {
+                'documents': 'اسناد و مدارک',
+                'electronics': 'الکترونیک',
+                'clothing': 'پوشاک',
+                'hygiene': 'بهداشت شخصی',
+                'medicine': 'دارو و سلامت',
+                'accessories': 'وسایل همراه',
+                'foreign-travel': 'مخصوص سفر خارجی',
+                'domestic-travel': 'مخصوص سفر داخلی'
+            };
+
+            // Load checklist from localStorage
+            let checklist = JSON.parse(localStorage.getItem('travelChecklist')) || [];
+            
+            // DOM elements
+            const checklistItemsEl = document.getElementById('checklist-items');
+            const emptyStateEl = document.getElementById('empty-state');
+            const progressBarEl = document.getElementById('progress-bar');
+            const categoryCards = document.querySelectorAll('.category-card');
+            const addItemBtn = document.getElementById('add-item-btn');
+            const addItemModal = document.getElementById('add-item-modal');
+            const closeModalBtn = document.getElementById('close-modal');
+            const cancelAddItemBtn = document.getElementById('cancel-add-item');
+            const confirmAddItemBtn = document.getElementById('confirm-add-item');
+            const itemNameInput = document.getElementById('item-name');
+            const itemCategorySelect = document.getElementById('item-category');
+            const itemImportantCheckbox = document.getElementById('item-important');
+            const searchItemsInput = document.getElementById('search-items');
+            const saveBtn = document.getElementById('save-btn');
+            const newListBtn = document.getElementById('new-list-btn');
+
+            // Render checklist
+            function renderChecklist(items = checklist) {
+                if (items.length === 0) {
+                    checklistItemsEl.innerHTML = '';
+                    emptyStateEl.classList.remove('hidden');
+                    progressBarEl.style.width = '0%';
+                    return;
+                }
+
+                emptyStateEl.classList.add('hidden');
+                
+                let checkedCount = 0;
+                let html = '';
+                
+                items.forEach((item, index) => {
+                    if (item.checked) checkedCount++;
+                    
+                    const importantClass = item.important ? 'important-item' : '';
+                    const checkedClass = item.checked ? 'checked' : '';
+                    
+                    html += `
+                        <div class="checklist-item ${checkedClass} ${importantClass} p-4 hover:bg-gray-50 transition cursor-pointer" data-index="${index}" data-category="${item.category}">
+
+                            <div class="flex items-center">
+                                <div class="checkbox w-6 h-6 rounded border-2 ${item.important ? 'border-red-500' : 'border-gray-300'} flex items-center justify-center mr-3 ${item.checked ? 'bg-green-500 border-green-500 text-white' : ''}">
+                                    ${item.checked ? '<i class="fas fa-check checkmark"></i>' : ''}
+                                </div>
+                                <div class="flex-grow">
+                                    <div class="item-name font-medium ${item.important ? 'text-red-600' : 'text-gray-800'}">${item.name}</div>
+                                    <div class="flex items-center mt-1">
+                                        <i class="${categoryIcons[item.category]} text-sm ${getCategoryColor(item.category)} ml-1"></i>
+                                        <span class="text-xs text-gray-500">${categoryNames[item.category]}</span>
+                                    </div>
+                                </div>
+                                <button class="delete-item text-gray-400 hover:text-red-500 p-1 rounded-full" data-index="${index}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                checklistItemsEl.innerHTML = html;
+                
+                // Update progress bar
+                const progress = (checkedCount / items.length) * 100;
+                progressBarEl.style.width = `${progress}%`;
+                
+                // Add event listeners to new items
+                document.querySelectorAll('.checklist-item').forEach(item => {
+                    item.addEventListener('click', function(e) {
+                        // Don't toggle if delete button was clicked
+                        if (e.target.closest('.delete-item')) return;
+                        
+                        const index = parseInt(this.getAttribute('data-index'));
+                        toggleItem(index);
+                    });
+                });
+                
+                // Add event listeners to delete buttons
+                document.querySelectorAll('.delete-item').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const index = parseInt(this.getAttribute('data-index'));
+                        deleteItem(index);
+                    });
+                });
+            }
+
+            // Get color for category
+            function getCategoryColor(category) {
+                const colors = {
+                    'documents': 'text-blue-500',
+                    'electronics': 'text-green-500',
+                    'clothing': 'text-yellow-500',
+                    'hygiene': 'text-red-500',
+                    'medicine': 'text-purple-500',
+                    'accessories': 'text-pink-500',
+                    'foreign-travel': 'text-indigo-500',
+                    'domestic-travel': 'text-teal-500'
+                };
+                return colors[category] || 'text-gray-500';
+            }
+
+            // Toggle item checked status
+            function toggleItem(index) {
+                checklist[index].checked = !checklist[index].checked;
+                saveChecklist();
+                renderChecklist();
+            }
+
+            // Delete item
+            function deleteItem(index) {
+                if (confirm('آیا مطمئن هستید می‌خواهید این وسیله را حذف کنید؟')) {
+                    checklist.splice(index, 1);
+                    saveChecklist();
+                    renderChecklist();
+                }
+            }
+
+            // Add items from category
+            function addCategoryItems(category) {
+                const categoryItems = defaultItems[category];
+                
+                categoryItems.forEach(item => {
+                    // Check if item already exists in checklist
+                    const exists = checklist.some(i => i.name === item.name && i.category === category);
+                    if (!exists) {
+                        checklist.push({
+                            name: item.name,
+                            category: category,
+                            important: item.important,
+                            checked: false
+                        });
+                    }
+                });
+                
+                saveChecklist();
+                renderChecklist();
+
+                  const firstCategoryItem = document.querySelector(`.checklist-item[data-category="${category}"]`);
+                   if (firstCategoryItem) {
+                        firstCategoryItem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+            }
+
+            // Add custom item
+            function addCustomItem() {
+                const name = itemNameInput.value.trim();
+                const category = itemCategorySelect.value;
+                const important = itemImportantCheckbox.checked;
+                
+                if (name === '') {
+                    alert('لطفا نام وسیله را وارد کنید');
+                    return;
+                }
+                
+                checklist.push({
+                    name: name,
+                    category: category,
+                    important: important,
+                    checked: false
+                });
+                
+                saveChecklist();
+                renderChecklist();
+                closeAddItemModal();
+            }
+
+            // Save checklist to localStorage
+            function saveChecklist() {
+                localStorage.setItem('travelChecklist', JSON.stringify(checklist));
+                
+                // Show save confirmation
+                const saveBtn = document.getElementById('save-btn');
+                const originalText = saveBtn.innerHTML;
+                
+                saveBtn.innerHTML = '<i class="fas fa-check ml-2"></i> ذخیره شد!';
+                saveBtn.classList.remove('bg-white');
+                saveBtn.classList.add('bg-green-500', 'text-white');
+                
+                setTimeout(() => {
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.classList.remove('bg-green-500', 'text-white');
+                    saveBtn.classList.add('bg-white');
+                }, 2000);
+            }
+
+            // Create new list
+            function createNewList() {
+                if (checklist.length > 0 && !confirm('آیا مطمئن هستید می‌خواهید لیست جدید ایجاد کنید؟ لیست فعلی پاک خواهد شد.')) {
+                    return;
+                }
+                
+                checklist = [];
+                saveChecklist();
+                renderChecklist();
+            }
+
+            // Open add item modal
+            function openAddItemModal() {
+                addItemModal.classList.remove('hidden');
+                itemNameInput.focus();
+            }
+
+            // Close add item modal
+            function closeAddItemModal() {
+                addItemModal.classList.add('hidden');
+                itemNameInput.value = '';
+                itemImportantCheckbox.checked = false;
+            }
+
+            // Search items
+            function searchItems() {
+                const searchTerm = searchItemsInput.value.toLowerCase();
+                
+                if (searchTerm === '') {
+                    renderChecklist();
+                    return;
+                }
+                
+                const filteredItems = checklist.filter(item => 
+                    item.name.toLowerCase().includes(searchTerm) || 
+                    categoryNames[item.category].toLowerCase().includes(searchTerm)
+                );
+                
+                renderChecklist(filteredItems);
+            }
+
+            // Event listeners
+            categoryCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const category = this.getAttribute('data-category');
+                    addCategoryItems(category);
+                });
+            });
+
+            addItemBtn.addEventListener('click', openAddItemModal);
+            closeModalBtn.addEventListener('click', closeAddItemModal);
+            cancelAddItemBtn.addEventListener('click', closeAddItemModal);
+            confirmAddItemBtn.addEventListener('click', addCustomItem);
+            saveBtn.addEventListener('click', saveChecklist);
+            newListBtn.addEventListener('click', createNewList);
+            searchItemsInput.addEventListener('input', searchItems);
+
+            // Close modal when clicking outside
+            addItemModal.addEventListener('click', function(e) {
+                if (e.target === addItemModal) {
+                    closeAddItemModal();
+                }
+            });
+
+            // Add item on Enter key
+            itemNameInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addCustomItem();
+                }
+            });
+
+            // Initial render
+            renderChecklist();
+        });
+    </script>
+</body>
+</html>
