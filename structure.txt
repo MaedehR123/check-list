@@ -1,0 +1,14 @@
+Folder PATH listing
+Volume serial number is 5CF3-20AC
+C:.
+|   .gitignore
+|   index.html
+|   structure.txt
+|   
++---.vercel
+|       project.json
+|       README.txt
+|       
+\---public
+        index.html
+        
